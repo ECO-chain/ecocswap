@@ -46,12 +46,11 @@ interface ICC20Admin {
     ) external;
 
     /**
-     * @dev retrieves (withdraws) accumulated admin fees of a token or ECOC to cold wallet
-     * for ECOC must pass the zero address
-     * @param oracle - oracle address for all assets of a chain
+     * @dev retrieves (withdraws) accumulated admin fees of a token
+     * @param tokenAddr - the token's ECRC20 smart contract address
      * @param amount - If amount is set to zero then the whole balance of the token will be retrieved
      */
-    function retrieveFees(address tokenAddr, uint256 amount) external payable;
+    function retrieveFees(address tokenAddr, uint256 amount) external;
 
     /* Events */
     event SetAdminFeeEvent(address tokenAddr, uint256 networkId, uint8 feeRate);

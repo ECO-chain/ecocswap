@@ -58,6 +58,7 @@ contract CCB {
     mapping(uint256 => Request) private requests;
 
     struct Asset {
+        bool[] network;
         /* statistics */
         uint256 lockedAmount;
         uint256 pendingAmount;
@@ -114,63 +115,106 @@ contract CCB {
         _;
     }
 
-    modifier oracleOnly(uint256 networkId) {
+    modifier oracleOnly(uint256 _networkId) {
         Oracle memory oracle = oracles[msg.sender];
-        require(oracle.network == networkId);
+        require(oracle.network == _networkId);
         _;
     }
 
-    /////////////// admin ///////////////////////
     /**
      * @dev set admin fee for a token(can be zero)
      * It can't be higher than maxAdminFee (1%)
      * it can be edited at any time. The same restrictions apply (range 0-1%)
-     * @param tokenAddr - the token's ECRC20 smart contract address
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @param feeRate - the fee rate has two decimals.
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @param _feeRate - the fee rate has two decimals.
      */
     function setAdminFee(
-        address tokenAddr,
-        uint256 networkId,
-        uint8 feeRate
-    ) external;
+        address _tokenAddr,
+        uint256 _networkId,
+        uint8 _feeRate
+    ) external adminOnly {
+        /* prevent admin setting a high fee */
+        require(_feeRate <= maxAdminFee);
+
+        adminFeeRates[_tokenAddr][_networkId] = _feeRate;
+        emit SetAdminFeeEvent(_tokenAddr, _networkId, _feeRate);
+    }
 
     /**
      * @dev authorizes an oracle for a specific chain
-     * @param oracle - oracle address for all assets of a chain
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _oracle - oracle address for all assets of a chain
+     * @param _networkId - the network Id according to https://chainlist.org/
      */
-    function addOracle(address oracle, uint256 networkId) external;
+    function addOracle(address _oracle, uint256 _networkId) external adminOnly {
+        Oracle storage oracle = oracles[_oracle];
+        oracle.networkId[_networkId] = true;
+    }
 
     /**
      * @dev revokes authorization of an oracle for a specific chain
-     * @param oracle - oracle address for all assets of a chain
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _oracle - oracle address for all assets of a chain
+     * @param _networkId - the network Id according to https://chainlist.org/
      */
-    function removeOracle(address oracle, uint256 networkId) external;
+    function removeOracle(address _oracle, uint256 _networkId)
+        external
+        adminOnly
+    {
+        Oracle storage oracle = oracles[_oracle];
+        oracle.networkId[_networkId] = false;
+    }
 
     /**
      * @dev adds an ECRC20 token for a specific chain
      * fee rate can be set to zero
-     * @param tokenAddr - the token's ECRC20 smart contract address
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @param feeRate - the fee rate has two decimals.
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @param _feeRate - the fee rate has two decimals.
      */
     function addAsset(
-        address tokenAddr,
-        uint256 networkId,
-        uint8 feeRate
-    ) external;
+        address _tokenAddr,
+        uint256 _networkId,
+        uint8 _feeRate
+    ) external adminOnly {
+        /* if admin fee is higher than maximum revert */
+        require(_feeRate <= maxAdminFee);
+
+        Asset storage asset = assets[_tokenAddr];
+        /* if asset already exists for the target chain revert */
+        require(!asset.network[_networkId]);
+
+        asset.network[_networkId] = true;
+        adminFeeRates[_tokenAddr][_networkId] = _feeRate;
+
+        emit AddAsset(_tokenAddr, _networkId, _feeRate);
+    }
 
     /**
-     * @dev retrieves (withdraws) accumulated admin fees of a token or ECOC to cold wallet
-     * for ECOC must pass the zero address
-     * @param oracle - oracle address for all assets of a chain
-     * @param amount - If amount is set to zero then the whole balance of the token will be retrieved
+     * @dev retrieves (withdraws) accumulated admin fees of a token
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _amount - If amount is set to zero then the whole balance of the token will be retrieved
      */
-    function retrieveFees(address tokenAddr, uint256 amount) external payable;
+    function retrieveFees(address _tokenAddr, uint256 _amount)
+        external
+        adminOnly
+    {
+        /* if balance is zero revert*/
+        require(adminFees[_tokenAddr] > 0);
 
-    ////////////////////////////////////////////////
+        uint256 amount;
+        if (_amount == 0 || _amount > adminFees[_tokenAddr]) {
+            amount = adminFees[_tokenAddr];
+            adminFees[_tokenAddr] = 0;
+        } else {
+            amount = _amount;
+            adminFees[_tokenAddr] = adminFees[_tokenAddr].sub(_amount);
+        }
+
+        ECRC20 ecrcToken = ECRC20(_tokenAddr);
+        require(ecrcToken.transfer(adminWallet, amount));
+
+        emit RetrieveFeesEvent(_tokenAddr, amount);
+    }
 
     /////////////// oracles ///////////////////////
     /**
