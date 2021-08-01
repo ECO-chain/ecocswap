@@ -398,5 +398,16 @@ contract CCB {
         external
         view
         returns (uint256 amount);
+
+    /**
+     * @notice checks if the specific address belongs to an oracle
+     * @param oracle - address in question
+     * @param networkId - the network Id according to https://chainlist.org/
+     * @return bool - true if it is an oracle for the target chain
+     */
+    function isOracle(address oracle, uint256 networkId)
+        external
+        view
+        returns (bool auth);
     ////////////////////////////////////////////////
 }
