@@ -45,10 +45,10 @@ interface ICC20User {
     /**
      * @dev returns the gas cost. It is the same for all assets at a specific time and different for each chain
      * @notice Use this return value to send ECOC when locking assets on ecochain
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @return gasCost - The gas cost in ECOC. It is used to pay the oracle expenses when locking
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @return uint256 - The gas cost in ECOC. It is used to pay to oracle the expenses (tx cost) when locking
      */
-    function getGasCost(uint256 networkId)
+    function getGasCost(uint256 _networkId)
         external
         view
         returns (uint256 gasCost);

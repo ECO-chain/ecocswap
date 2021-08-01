@@ -36,6 +36,7 @@ contract ECRC20 {
 }
 
 contract CCB {
+    address constant zeroAddr = address(0x0);
     uint8 constant maxAdminFee = 100; /* set max admin fee to 1% */
     address private adminAddr;
     address private adminWallet;
@@ -67,6 +68,14 @@ contract CCB {
     }
     mapping(address => Asset) private assets;
 
+    struct User {
+        uint256[] requests;
+        /* statistics
+         * what statistics are needed for users
+         */
+    }
+    mapping(address => User) private users;
+
     struct Oracle {
         bool[] network; /* is authorized for a chain. Index is the chain id */
         uint256 availableAmount; /* accumulated gas costs, can be withdrawn */
@@ -76,6 +85,7 @@ contract CCB {
 
     mapping(address => mapping(uint256 => uint8)) private adminFeeRates; /* token address and network id */
     mapping(address => uint256) private adminFees; /* token address */
+    mapping(uint256 => uint256) private gasCosts; /* network id */
 
     /* events*/
     event SetAdminFeeEvent(address tokenAddr, uint256 networkId, uint8 feeRate);
@@ -96,7 +106,7 @@ contract CCB {
         uint256 txid
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
-    event SetGasCostEvent(uint256 fee, uint256 networkId, uint256 txid);
+    event SetGasCostEvent(address oracle, uint256 cost, uint256 networkId);
     event RetrieveGasCostEvent(address oracle, uint256 amount);
     event LockERC20Event(
         address tokenAddr,
@@ -261,10 +271,17 @@ contract CCB {
      * @dev This function should be called often; It sets the gas cost of the target chain
      * @notice This cost is the same for any asset(including ECOC) for a specific chain. ECOC is
      * a wrapped token on other chains (*RC20) so the transfer cost is the same
-     * @param fee - cost in ECOC of the issue() of wrapped tokens. It can't be zero
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _cost - cost in ECOC of the issue() of wrapped tokens. It can't be zero
+     * @param _networkId - the network Id according to https://chainlist.org/
      */
-    function setGasCost(uint256 fee, uint256 networkId) external;
+    function setGasCost(uint256 _cost, uint256 _networkId)
+        external
+        oracleOnly(_networkId)
+    {
+        require(_cost != 0);
+        gasCosts[_networkId] = _cost;
+        emit SetGasCostEvent(msg.sender, _cost, _networkId);
+    }
 
     /**
      * @dev retrieves (withdraws) accumulated gasCost (the whole balance of an oracle)
@@ -298,9 +315,37 @@ contract CCB {
      * @param beneficiarAddr is the public address on the target chain
      * @param networkId - the network Id according to https://chainlist.org/
      */
-    function lockECOC(uint256 beneficiarAddr, uint256 networkId)
+    function lockECOC(uint256 _beneficiarAddr, uint256 _networkId)
         external
-        payable;
+        payable
+    {
+        uint256 cost = _getGasCost(_networkId);
+        require(msg.value > cost);
+
+        /* use zero address for ECOC for mapping */
+        Asset storage a = assets[zeroAddr];
+        /* check if asset is active on target chain */
+        require(a.network[_networkId]);
+
+        uint256 lockedAmount = msg.value.sub(cost);
+        User storage u = users[msg.sender];
+        u.requests.push(nextRequestId);
+
+        Request storage r = requests[nextRequestId];
+        nextRequestId++;
+        r.requester = msg.sender;
+        r.asset = zeroAddr; /* zero address for ecoc*/
+        r.amount = lockedAmount;
+        r.gasCost = cost;
+        r.pending = true;
+
+        /* update statistics for asset*/
+        a.lockedAmount = a.lockedAmount.add(lockedAmount);
+        a.pendingAmount = a.pendingAmount.add(lockedAmount);
+        a.totalLocked = a.totalLocked.add(lockedAmount);
+
+        emit LockECOCEvent(_beneficiarAddr, _networkId, msg.value);
+    }
 
     /**
      * @dev returns the admin fee rate
@@ -316,13 +361,24 @@ contract CCB {
     /**
      * @dev returns the gas cost. It is the same for all assets at a specific time and different for each chain
      * @notice Use this return value to send ECOC when locking assets on ecochain
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @return gasCost - The gas cost in ECOC. It is used to pay the oracle expenses when locking
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @return uint256 - The gas cost in ECOC. It is used to pay to oracle the expenses (tx cost) when locking
      */
-    function getGasCost(uint256 networkId)
+    function getGasCost(uint256 _networkId)
         external
         view
-        returns (uint256 gasCost);
+        returns (uint256 gasCost)
+    {
+        return _getGasCost(_networkId);
+    }
+
+    function _getGasCost(uint256 _networkId)
+        internal
+        view
+        returns (uint256 gasCost)
+    {
+        return gasCosts[_networkid];
+    }
 
     /**
      * @dev gets all requests for a specific public address of a chain (all assets)

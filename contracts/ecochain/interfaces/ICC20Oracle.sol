@@ -48,10 +48,10 @@ interface ICC20Oracle {
      * @dev This function should be called often; It sets the gas cost of the target chain
      * @notice This cost is the same for any asset(including ECOC) for a specific chain. ECOC is
      * a wrapped token on other chains (*RC20) so the transfer cost is the same
-     * @param fee - cost in ECOC of the issue() of wrapped tokens. It can't be zero
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _cost - cost in ECOC of the issue() of wrapped tokens. It can't be zero
+     * @param _networkId - the network Id according to https://chainlist.org/
      */
-    function setGasCost(uint256 fee, uint256 networkId) external;
+    function setGasCost(uint256 _cost, uint256 _networkId) external;
 
     /**
      * @dev retrieves (withdraws) accumulated gasCost (the whole balance of an oracle)
@@ -73,6 +73,6 @@ interface ICC20Oracle {
         uint256 txid
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
-    event SetGasCostEvent(uint256 fee, uint256 networkId, uint256 txid);
+    event SetGasCostEvent(uint256 cost, uint256 networkId, uint256 txid);
     event RetrieveGasCostEvent(address oracle, uint256 amount);
 }
