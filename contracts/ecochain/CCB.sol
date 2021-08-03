@@ -146,6 +146,8 @@ contract CCB {
     ) external adminOnly {
         /* prevent admin setting a high fee */
         require(_feeRate <= maxAdminFee);
+        /* disallloe admin to set any admin fees on ECOC */
+        require(_tokenAddr != zeroAddr);
 
         adminFeeRates[_tokenAddr][_networkId] = _feeRate;
         emit SetAdminFeeEvent(_tokenAddr, _networkId, _feeRate);
