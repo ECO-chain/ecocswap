@@ -37,7 +37,7 @@ contract ECRC20 {
 
 contract CCB {
     address constant zeroAddr = address(0x0);
-    uint8 constant maxAdminFee = 100; /* set max admin fee to 1% */
+    uint8 constant maxAdminFee = 100; /* set max admin fee to 1% (4 digits) */
     address private adminAddr;
     address private adminWallet;
     uint256 nextRequestId = 1;
@@ -49,6 +49,7 @@ contract CCB {
 
     struct Request {
         address requester;
+        uint256 beneficiar;
         address asset;
         uint256 amount;
         uint256 gasCost;
@@ -65,6 +66,7 @@ contract CCB {
         uint256 pendingAmount;
         uint256 totalLocked;
         uint256 totalUnlocked;
+        uint256 totalFees;
     }
     mapping(address => Asset) private assets;
 
@@ -198,7 +200,7 @@ contract CCB {
         asset.network[_networkId] = true;
         adminFeeRates[_tokenAddr][_networkId] = _feeRate;
 
-        emit AddAsset(_tokenAddr, _networkId, _feeRate);
+        emit AddAssetEvent(_tokenAddr, _networkId, _feeRate);
     }
 
     /**
@@ -298,17 +300,61 @@ contract CCB {
      * @dev locks ERC20
      * @notice token holder must approve() first to this smart contract the amount of token
      * @notice the user must also send to contract an equal amount (or more) of ECOC thet gets by calling getGasCost()
-     * @param tokenAddr - the token's ECRC20 smart contract address
-     * @param beneficiarAddr is the public address on the target chain
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @param amount - quantity of tokens
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _beneficiarAddr is the public address on the target chain
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @param _amount - quantity of tokens
      */
     function lockERC20(
-        address tokenAddr,
-        uint256 beneficiarAddr,
-        uint256 networkId,
-        uint256 amount
-    ) external payable;
+        address _tokenAddr,
+        uint256 _beneficiarAddr,
+        uint256 _networkId,
+        uint256 _amount
+    ) external payable {
+        uint256 cost = _getGasCost(_networkId);
+        require(msg.value > cost);
+
+        Asset storage a = assets[_tokenAddr];
+        /* check if asset is active on target chain */
+        require(a.network[_networkId]);
+
+        require(_amount != 0);
+
+        ECRC20 ecrcToken = ECRC20(_tokenAddr);
+        /* user must approve() the smart contract first */
+        require(ecrcToken.transferFrom(msg.sender, address(this), _amount));
+
+        uint256 adminFee;
+        uint256 amount = _amount;
+        /* save some gas if fee rate is zero */
+        if (adminFeeRates[_tokenAddr][_networkId] != 0) {
+            adminFee = (uint256(adminFeeRates[_tokenAddr][_networkId]))
+                .mul(_amount)
+                .div(1e4);
+            amount = _amount.sub(adminFee);
+        }
+
+        Request storage r = requests[nextRequestId];
+        User storage u = users[msg.sender];
+        u.requests.push(nextRequestId);
+        nextRequestId++;
+
+        r.requester = msg.sender;
+        r.beneficiar = _beneficiarAddr; /* public address in hex for target chain */
+        r.asset = _tokenAddr;
+        r.amount = amount;
+        r.gasCost = cost;
+        r.pending = true;
+
+        /* update statistics for asset*/
+        a.lockedAmount = a.lockedAmount.add(amount);
+        a.pendingAmount = a.pendingAmount.add(amount);
+        a.totalLocked = a.totalLocked.add(amount);
+        a.totalFees = a.totalFees.add(adminFee);
+
+        /* update statistics for user */
+        emit LockERC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount);
+    }
 
     /**
      * @dev locks ECOC
@@ -336,6 +382,7 @@ contract CCB {
         Request storage r = requests[nextRequestId];
         nextRequestId++;
         r.requester = msg.sender;
+        r.beneficiar = _beneficiarAddr; /* public address in hex for target chain */
         r.asset = zeroAddr; /* zero address for ecoc*/
         r.amount = lockedAmount;
         r.gasCost = cost;
@@ -345,6 +392,9 @@ contract CCB {
         a.lockedAmount = a.lockedAmount.add(lockedAmount);
         a.pendingAmount = a.pendingAmount.add(lockedAmount);
         a.totalLocked = a.totalLocked.add(lockedAmount);
+        a.totalFees = a.totalFees.add(adminFee);
+
+        /* update statistics for user */
 
         emit LockECOCEvent(_beneficiarAddr, _networkId, msg.value);
     }
@@ -379,7 +429,7 @@ contract CCB {
         view
         returns (uint256 gasCost)
     {
-        return gasCosts[_networkid];
+        return gasCosts[_networkId];
     }
 
     /**
