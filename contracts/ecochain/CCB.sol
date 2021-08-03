@@ -41,6 +41,7 @@ contract CCB {
     address private adminAddr;
     address private adminWallet;
     uint256 nextRequestId = 1;
+    uint256 nextReleaseId = 1;
 
     function CCB(address _adminWallet) public {
         adminAddr = msg.sender;
@@ -48,6 +49,7 @@ contract CCB {
     }
 
     struct Request {
+        uint256 networkId;
         address requester;
         uint256 beneficiar;
         address asset;
@@ -58,6 +60,16 @@ contract CCB {
         bool completed;
     }
     mapping(uint256 => Request) private requests;
+
+    struct Release {
+        uint256 networkId;
+        uint256 txid;
+        address oracle;
+        address beneficiar;
+        address asset;
+        uint256 amount;
+    }
+    mapping(uint256 => Release) private releases;
 
     struct Asset {
         bool[] network;
@@ -72,6 +84,7 @@ contract CCB {
 
     struct User {
         uint256[] requests;
+        uint256[] releases;
         /* statistics
          * what statistics are needed for users
          */
@@ -96,12 +109,14 @@ contract CCB {
     event AddAssetEvent(address tokenAddr, uint256 networkId, uint8 feeRate);
     event RetrieveFeesEvent(address tokenAddr, uint256 amount);
     event UnlockERC20Event(
+        address oracle,
         address tokenAddr,
         address beneficiar,
         uint256 networkId,
         uint256 amount
     );
     event UnlockECOCEvent(
+        address oracle,
         address beneficiar,
         uint256 networkId,
         uint256 amount,
@@ -234,20 +249,55 @@ contract CCB {
     /**
      * @dev unlocks ECRC20 tokens after detecting that tokens are burned on target chain
      * @notice gas is paid by oracle
-     * @notice if admin fee is non-zero, keep the fee; by default is zero
-     * @param tokenAddr - the token's ECRC20 smart contract address
-     * @param beneficiar - adress to where the tokens to be sent
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @param txid - the transaction id of the burned tokens.
-     * @param amount - quantity of tokens
+     * @notice no admin fee for exiting
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _beneficiar - adress to where the tokens to be sent
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @param _txid - the transaction id of the burned tokens.
+     * @param _amount - quantity of tokens
      */
-    function unlockERC20(
-        address tokenAddr,
-        address beneficiar,
-        uint256 networkId,
-        uint256 txid,
-        uint256 amount
-    ) external;
+    function unlockECRC20(
+        address _tokenAddr,
+        address _beneficiar,
+        uint256 _networkId,
+        uint256 _txid,
+        uint256 _amount
+    ) external oracleOnly(_networkId) {
+        require(_amount != 0);
+        require(_tokenAddr != zeroAddr); /* zero addres is reserved for ecoc*/
+
+        Asset storage a = assets[_tokenAddr];
+        /* check if asset is active on target chain */
+        require(a.network[_networkId]);
+
+        ECRC20 ecrcToken = ECRC20(_tokenAddr);
+        require(ecrcToken.transferFrom(address(this), _beneficiar, _amount));
+
+        Release storage rel = releases[nextReleaseId];
+        User storage u = users[_beneficiar];
+        u.releases.push(nextReleaseId);
+        nextReleaseId++;
+
+        rel.networkId = _networkId;
+        rel.txid = _txid;
+        rel.oracle = msg.sender;
+        rel.beneficiar = _beneficiar;
+        rel.asset = _tokenAddr;
+        rel.amount = _amount;
+
+        /* update statistics for asset*/
+        a.totalUnlocked = a.totalUnlocked.add(_amount);
+
+        /* update statistics for user */
+
+        emit UnlockERC20Event(
+            msg.sender,
+            _tokenAddr,
+            _beneficiar,
+            _networkId,
+            _amount
+        );
+    }
 
     /**
      * @dev unlocks ECOC after detecting that WECOC is burned on target chain
@@ -339,6 +389,7 @@ contract CCB {
         u.requests.push(nextRequestId);
         nextRequestId++;
 
+        r.networkId = _networkId;
         r.requester = msg.sender;
         r.beneficiar = _beneficiarAddr; /* public address in hex for target chain */
         r.asset = _tokenAddr;
@@ -381,6 +432,8 @@ contract CCB {
 
         Request storage r = requests[nextRequestId];
         nextRequestId++;
+
+        r.networkId = _networkId;
         r.requester = msg.sender;
         r.beneficiar = _beneficiarAddr; /* public address in hex for target chain */
         r.asset = zeroAddr; /* zero address for ecoc*/

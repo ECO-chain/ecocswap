@@ -14,7 +14,7 @@ interface ICC20Oracle {
      * @param txid - the transaction id of the burned tokens.
      * @param amount - quantity of tokens
      */
-    function unlockERC20(
+    function unlockECRC20(
         address tokenAddr,
         address beneficiar,
         uint256 networkId,
@@ -61,12 +61,14 @@ interface ICC20Oracle {
 
     /* Events */
     event UnlockERC20Event(
+        address oracle,
         address tokenAddr,
         address beneficiar,
         uint256 networkId,
         uint256 amount
     );
     event UnlockECOCEvent(
+        address oracle,
         address beneficiar,
         uint256 networkId,
         uint256 amount,
