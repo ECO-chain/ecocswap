@@ -56,6 +56,7 @@ contract CCB {
         uint256 amount;
         uint256 gasCost;
         uint256 adminFee;
+        uint256 txid;
         bool pending;
         bool completed;
     }
@@ -94,7 +95,6 @@ contract CCB {
     struct Oracle {
         bool[] network; /* is authorized for a chain. Index is the chain id */
         uint256 availableAmount; /* accumulated gas costs, can be withdrawn */
-        uint256 unsettledAmount; /* accumulated gas costs, must be settled first on target chain */
     }
     mapping(address => Oracle) private oracles;
 
@@ -124,7 +124,7 @@ contract CCB {
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
     event SetGasCostEvent(address oracle, uint256 cost, uint256 networkId);
-    event RetrieveGasCostEvent(address oracle, uint256 amount);
+    event WithdrawGasCostsEvent(address oracle, uint256 amount);
     event LockERC20Event(
         address tokenAddr,
         uint256 beneficiarAddr,
@@ -350,11 +350,26 @@ contract CCB {
 
     /**
      * @dev informs the smart contract that the wrapped token has been issued on target chain
-     * must be triggered by the oracle after the issue() on target chain is confirmed
-     * @param requestId - the request id of locking
-     * @param txid - the transaction id of the issued tokens on the target chain
+     * @notice must be triggered by the oracle after the issue() on target chain is confirmed
+     * @param _requestId - the request id of locking
+     * @param _txid - the transaction id of the issued tokens on target chain
      */
-    function issued(uint256 requestId, uint256 txid) external;
+    function issued(uint256 _requestId, uint256 _txid) external {
+        /* request must exist */
+        require(_requestId < nextRequestId);
+        Oracle storage oracle = oracles[msg.sender];
+        /* oracle must be authorized */
+        require(oracle.network[_networkId]);
+
+        Request storage r = requests[_requestId];
+        r.pending = false;
+        r.completed = true;
+        r.txid = _txid;
+
+        oracle.availableAmount = oracle.availableAmount.add(r.gasCost);
+
+        emit IssuedEvent(msg.sender, _requestId, _txid);
+    }
 
     /**
      * @dev This function should be called often; It sets the gas cost of the target chain
@@ -373,10 +388,10 @@ contract CCB {
     }
 
     /**
-     * @dev retrieves (withdraws) accumulated gasCost (the whole balance of an oracle)
+     * @dev withdraws accumulated gasCosts (the whole balance of an oracle)
      * @dev it fails on zero balance
      */
-    function retrieveGasCosts() external payable;
+    function withdrawGasCosts() external payable;
 
     ////////////////////////////////////////////////
 

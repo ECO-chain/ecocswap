@@ -56,10 +56,10 @@ interface ICC20Oracle {
     function setGasCost(uint256 _cost, uint256 _networkId) external;
 
     /**
-     * @dev retrieves (withdraws) accumulated gasCost (the whole balance of an oracle)
+     * @dev Withdraws accumulated gasCosts (the whole balance of an oracle)
      * @dev it fails on zero balance
      */
-    function retrieveGasCosts() external payable;
+    function WithdrawGasCosts() external payable;
 
     /* Events */
     event UnlockERC20Event(
@@ -78,5 +78,5 @@ interface ICC20Oracle {
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
     event SetGasCostEvent(uint256 cost, uint256 networkId, uint256 txid);
-    event RetrieveGasCostEvent(address oracle, uint256 amount);
+    event WithdrawGasCostsEvent(address oracle, uint256 amount);
 }
