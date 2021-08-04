@@ -557,9 +557,9 @@ contract CCB {
         view
         returns (uint256[] requestIds)
     {
-        User u = users[_beneficiarAddr];
+        User memory u = users[_beneficiarAddr];
         for (uint256 i = 0; i < u.requests.length; i++) {
-            Request r = requests[u.requests[i]];
+            Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 requestIds.push(u.requests[i]);
             }
@@ -580,9 +580,9 @@ contract CCB {
         view
         returns (uint256[] requestIds)
     {
-        User u = users[_beneficiarAddr];
+        User memory u = users[_beneficiarAddr];
         for (uint256 i = 0; i < u.requests.length; i++) {
-            Request r = requests[u.requests[i]];
+            Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 if (!r.completed) {
                     requestIds.push(u.requests[i]);
@@ -595,13 +595,17 @@ contract CCB {
 
     /**
      * @dev checks if the txid of burned assets has been comleted (assets unlocked)
-     * @param requestId - the id of the locked request
-     * @return completed - Return a boolean(true if the wrapped asset is issued on the target chain)
+     * @param _requestId - the id of the locked request
+     * @return bool - Return a boolean(true if the wrapped asset is issued on the target chain)
      */
-    function getTransferStatus(uint256 requestId)
+    function getTransferStatus(uint256 _requestId)
         external
         view
-        returns (bool completed);
+        returns (bool completed)
+    {
+        Request memory r = requests[_requestId];
+        return r.completed;
+    }
 
     /**
      * @notice returns the total locked amount of an asset (token or ECOC).
