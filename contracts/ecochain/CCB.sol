@@ -611,24 +611,33 @@ contract CCB {
      * @notice returns the total locked amount of an asset (token or ECOC).
      * @notice Oracle fees and admin fees are excluded
      * @dev pass the zero address if the asset is the ECOC
-     * @param tokenAddr - ERC20 smart contract address or the zero address for ECOC
-     * @return amount - total locked amount of the asset
+     * @param _tokenAddr - ERC20 smart contract address or the zero address for ECOC
+     * @return uint256 - total locked amount of the asset
      */
-    function getLockedAssets(address tokenAddr)
+    function getLockedAssets(address _tokenAddr)
         external
         view
-        returns (uint256 amount);
+        returns (uint256 amount)
+    {
+        Asset memory a = assets[_tokenAddr];
+        uint256 locked = a.totalLocked.sub(totalLocked);
+        return locked;
+    }
 
     /**
      * @notice Gas costs in ECOC for the oracle which haven't already retrieved
      * @dev balance is topped up after an oracle triggers issued()
-     * @param oracle - the oracle's address
-     * @return amount - total ECOC as gas cost that hasn't been retrieved yet by oracle
+     * @param _oracle - the oracle's address
+     * @return uint256 - total ECOC as gas cost that hasn't been retrieved yet by oracle
      */
-    function getOracleBalace(address oracle)
+    function getOracleBalace(address _oracle)
         external
         view
-        returns (uint256 amount);
+        returns (uint256 amount)
+    {
+        Oracle memory oracle = oracles[_oracle];
+        return oracle.availableAmount;
+    }
 
     /**
      * @dev balance of a token accumulated by admin fees and reduced with retrieveFees()
