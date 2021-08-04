@@ -29,11 +29,13 @@ interface ICC20Oracle {
      * @param beneficiar - adress to where the ECOC to be sent
      * @param networkId - the network Id according to https://chainlist.org/
      * @param txid - the transaction id of the burned tokens
+     * @param amount - amount of ECOC to be unlocked
      */
     function unlockECOC(
         uint256 beneficiarAddr,
         uint256 networkId,
-        uint256 txid
+        uint256 txid,
+        uint256 amount
     ) external payable;
 
     /**

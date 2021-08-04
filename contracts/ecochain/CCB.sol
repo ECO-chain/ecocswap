@@ -302,19 +302,54 @@ contract CCB {
     /**
      * @dev unlocks ECOC after detecting that WECOC is burned on target chain
      * @notice gas is paid by oracle
-     * @notice There is no admin fee for ECOC for any chain
-     * @param beneficiar - adress to where the ECOC to be sent
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @param txid - the transaction id of the burned tokens
+     * @notice There is no admin fee for ECOC for exiting
+     * @param _beneficiar - adress to where the ECOC must be sent
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @param _txid - the transaction id of the burned tokens
+     * @param _amount - amount of ECOC to be unlocked
      */
     function unlockECOC(
-        uint256 beneficiarAddr,
-        uint256 networkId,
-        uint256 txid
-    ) external payable;
+        uint256 _beneficiar,
+        uint256 _networkId,
+        uint256 _txid,
+        uint256 _amount
+    ) external payable oracleOnly(_networkId) {
+        require(_amount > 0);
+
+        Asset storage a = assets[zeroAddr];
+        /* check if asset is active on target chain */
+        require(a.network[_networkId]);
+
+        require(_beneficiar.transfer(_amount));
+
+        Release storage rel = releases[nextReleaseId];
+        User storage u = users[_beneficiar];
+        u.releases.push(nextReleaseId);
+        nextReleaseId++;
+
+        rel.networkId = _networkId;
+        rel.txid = _txid;
+        rel.oracle = msg.sender;
+        rel.beneficiar = _beneficiar;
+        rel.asset = zeroAddr;
+        rel.amount = _amount;
+
+        /* update statistics for asset*/
+        a.totalUnlocked = a.totalUnlocked.add(_amount);
+
+        /* update statistics for user */
+
+        emit UnlockECOCEvent(
+            msg.sender,
+            _beneficiar,
+            _networkId,
+            _amount,
+            _txid
+        );
+    }
 
     /**
-     * @dev informs teh smart contract that the wrapped token has been issued on target chain
+     * @dev informs the smart contract that the wrapped token has been issued on target chain
      * must be triggered by the oracle after the issue() on target chain is confirmed
      * @param requestId - the request id of locking
      * @param txid - the transaction id of the issued tokens on the target chain
