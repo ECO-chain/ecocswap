@@ -1,6 +1,6 @@
 /* License: GPL-3.0 https://www.gnu.org/licenses/gpl-3.0.en.html */
 
-pragma solidity 0.4.21;
+pragma solidity ^0.4.20;
 
 contract ECRC20 {
     function totalSupply() public constant returns (uint256);
@@ -144,7 +144,7 @@ contract CCB {
 
     modifier oracleOnly(uint256 _networkId) {
         Oracle memory oracle = oracles[msg.sender];
-        require(oracle.network == _networkId);
+        require(oracle.network[_networkId]);
         _;
     }
 
@@ -177,7 +177,7 @@ contract CCB {
      */
     function addOracle(address _oracle, uint256 _networkId) external adminOnly {
         Oracle storage oracle = oracles[_oracle];
-        oracle.networkId[_networkId] = true;
+        oracle.network[_networkId] = true;
     }
 
     /**
@@ -190,7 +190,7 @@ contract CCB {
         adminOnly
     {
         Oracle storage oracle = oracles[_oracle];
-        oracle.networkId[_networkId] = false;
+        oracle.network[_networkId] = false;
     }
 
     /**
@@ -358,9 +358,9 @@ contract CCB {
         require(_requestId < nextRequestId);
         Oracle storage oracle = oracles[msg.sender];
         /* oracle must be authorized */
-        require(oracle.network[_networkId]);
-
         Request storage r = requests[_requestId];
+        require(oracle.network[r.networkId]);
+
         r.pending = false;
         r.completed = true;
         r.txid = _txid;
@@ -464,8 +464,8 @@ contract CCB {
      * @dev locks ECOC
      * @notice an equal amount of ECOC of the value getGasCost() will be automatically kept to pay gas costs on the target chain
      * @notice if ECOC sent are less than or equal of getGasCost() the transaction will revert
-     * @param beneficiarAddr is the public address on the target chain
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _beneficiarAddr is the public address on the target chain
+     * @param _networkId - the network Id according to https://chainlist.org/
      */
     function lockECOC(uint256 _beneficiarAddr, uint256 _networkId)
         external
@@ -498,7 +498,6 @@ contract CCB {
         a.lockedAmount = a.lockedAmount.add(lockedAmount);
         a.pendingAmount = a.pendingAmount.add(lockedAmount);
         a.totalLocked = a.totalLocked.add(lockedAmount);
-        a.totalFees = a.totalFees.add(adminFee);
 
         /* update statistics for user */
 
@@ -571,7 +570,7 @@ contract CCB {
      * @param _networkId - the network Id according to https://chainlist.org/
      * @return uint256[] - Returns an array of of locked ids of pending only locks for all assets of an owner
      */
-    function getPendingRequests(uint256 beneficiarAddr, uint256 networkId)
+    function getPendingRequests(uint256 _beneficiarAddr, uint256 _networkId)
         external
         view
         returns (uint256[] requestIds)
@@ -616,7 +615,7 @@ contract CCB {
         returns (uint256 amount)
     {
         Asset memory a = assets[_tokenAddr];
-        uint256 locked = a.totalLocked.sub(totalLocked);
+        uint256 locked = a.totalLocked.sub(a.totalLocked);
         return locked;
     }
 
@@ -700,7 +699,7 @@ contract CCB {
             uint256 beneficiar,
             address asset,
             uint256 amount,
-            uint256 gasCosts,
+            uint256 gasCost,
             uint256 adminFee,
             uint256 txid,
             bool pending,
