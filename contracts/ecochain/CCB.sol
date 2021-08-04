@@ -2,6 +2,8 @@
 
 pragma solidity ^0.4.20;
 
+import "./libs/SafeMath.sol";
+
 contract ECRC20 {
     function totalSupply() public constant returns (uint256);
 
@@ -36,6 +38,8 @@ contract ECRC20 {
 }
 
 contract CCB {
+    using SafeMath for uint256;
+
     address constant zeroAddr = address(0x0);
     uint8 constant maxAdminFee = 100; /* set max admin fee to 1% (4 digits) */
     address private adminAddr;
@@ -308,7 +312,7 @@ contract CCB {
      * @param _amount - amount of ECOC to be unlocked
      */
     function unlockECOC(
-        uint256 _beneficiar,
+        address _beneficiar,
         uint256 _networkId,
         uint256 _txid,
         uint256 _amount
@@ -543,49 +547,51 @@ contract CCB {
     /**
      * @dev gets all requests for a specific public address of a chain (all assets)
      * @dev if _networkId is zero then it returns all requests  of all chains
-     * @param _beneficiarAddr is the ecoc public address of the user
+     * @param _userAddr is the ecoc public address of the user
      * @param _networkId - the network Id according to https://chainlist.org/
      * @return uint256[] - Returns an array of locked ids for all locked assets of a user
      */
-    function getAllRequests(uint256 _beneficiarAddr, uint256 _networkId)
+    function getAllRequests(address _userAddr, uint256 _networkId)
         external
         view
         returns (uint256[] requestIds)
     {
-        User memory u = users[_beneficiarAddr];
+        uint256[] storage allRequests;
+        User memory u = users[_userAddr];
         for (uint256 i = 0; i < u.requests.length; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
-                requestIds.push(u.requests[i]);
+                allRequests.push(u.requests[i]);
             }
         }
 
-        return requestIds;
+        return allRequests;
     }
 
     /**
      * @dev returns  only the pending requsts for a specific public address of a chain (all assets)
      * @dev if _networkId is zero then it returns all pending requests of all chains
-     * @param _beneficiarAddr is the ecoc public address of the user
+     * @param _userAddr is the ecoc public address of the user
      * @param _networkId - the network Id according to https://chainlist.org/
      * @return uint256[] - Returns an array of of locked ids of pending only locks for all assets of an owner
      */
-    function getPendingRequests(uint256 _beneficiarAddr, uint256 _networkId)
+    function getPendingRequests(address _userAddr, uint256 _networkId)
         external
         view
         returns (uint256[] requestIds)
     {
-        User memory u = users[_beneficiarAddr];
+        uint256[] storage allReleases;
+        User memory u = users[_userAddr];
         for (uint256 i = 0; i < u.requests.length; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 if (!r.completed) {
-                    requestIds.push(u.requests[i]);
+                    allReleases.push(u.requests[i]);
                 }
             }
         }
 
-        return requestIds;
+        return allReleases;
     }
 
     /**
@@ -739,7 +745,7 @@ contract CCB {
             uint256 networkId,
             uint256 txid,
             address oracle,
-            uint256 beneficiar,
+            address beneficiar,
             address asset,
             uint256 amount
         )
