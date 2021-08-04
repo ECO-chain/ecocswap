@@ -641,34 +641,45 @@ contract CCB {
 
     /**
      * @dev balance of a token accumulated by admin fees and reduced with retrieveFees()
-     * @param tokenAddr - ERC20 smart contract address
-     * @return amount - total balance of the token
+     * @param _tokenAddr - ERC20 smart contract address
+     * @return uint256 - total balance of the token
      */
-    function getAdminBalace(address tokenAddr)
+    function getAdminBalace(address _tokenAddr)
         external
         view
-        returns (uint256 amount);
+        returns (uint256 amount)
+    {
+        return adminFees[_tokenAddr];
+    }
 
     /**
      * @dev total token accumulated by admin fees (includes allready withdrawn)
-     * @param tokenAddr - ERC20 smart contract address
-     * @return amount - total fees of the token
+     * @param _tokenAddr - ERC20 smart contract address
+     * @return uint256 - total fees of the token
      */
-    function getTotalAdminFee(address tokenAddr)
+    function getTotalAdminFee(address _tokenAddr)
         external
         view
-        returns (uint256 amount);
+        returns (uint256 amount)
+    {
+        Asset memory a = assets[_tokenAddr];
+        return a.totalFees;
+    }
 
     /**
      * @notice checks if the specific address belongs to an oracle
-     * @param oracle - address in question
-     * @param networkId - the network Id according to https://chainlist.org/
+     * @param _oracle - address in question
+     * @param _networkId - the network Id according to https://chainlist.org/
      * @return bool - true if it is an oracle for the target chain
      */
-    function isOracle(address oracle, uint256 networkId)
+    function isOracle(address _oracle, uint256 _networkId)
         external
         view
-        returns (bool auth);
+        returns (bool auth)
+    {
+        Oracle memory oracle = oracles[_oracle];
+        return oracle.network[_networkId];
+    }
 
     /**
      * @notice returns information about a request
