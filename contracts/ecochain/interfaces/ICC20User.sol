@@ -37,7 +37,7 @@ interface ICC20User {
      * @param networkId - the network Id according to https://chainlist.org/
      * @return feeRate - 2 decimal places. It can be zero
      */
-    function getAdminFee(address tokenAddr, uint256 networkId)
+    function getFeeRate(address tokenAddr, uint256 networkId)
         external
         view
         returns (uint8 adminFee);

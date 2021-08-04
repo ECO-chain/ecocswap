@@ -511,14 +511,17 @@ contract CCB {
 
     /**
      * @dev returns the admin fee rate
-     * @param tokenAddr - the token's ECRC20 smart contract address
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @return feeRate - 2 decimal places. It can be zero
+     * @param _tokenAddr - the token's ECRC20 smart contract address
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @return uint8 - 2 decimal places. It can be zero
      */
-    function getAdminFee(address tokenAddr, uint256 networkId)
+    function getFeeRate(address _tokenAddr, uint256 _networkId)
         external
         view
-        returns (uint8 adminFee);
+        returns (uint8 adminFee)
+    {
+        return adminFeeRates[_tokenAddr][_networkId];
+    }
 
     /**
      * @dev returns the gas cost. It is the same for all assets at a specific time and different for each chain
