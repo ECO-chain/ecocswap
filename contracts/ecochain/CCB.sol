@@ -547,25 +547,51 @@ contract CCB {
 
     /**
      * @dev gets all requests for a specific public address of a chain (all assets)
-     * @param beneficiarAddr is the public address on the target chain
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @return requestId - Returns an array of locked ids for all locked assets of an owner
+     * @dev if _networkId is zero then it returns all requests  of all chains
+     * @param _beneficiarAddr is the ecoc public address of the user
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @return uint256[] - Returns an array of locked ids for all locked assets of a user
      */
-    function getAllRequests(uint256 beneficiarAddr, uint256 networkId)
+    function getAllRequests(uint256 _beneficiarAddr, uint256 _networkId)
         external
         view
-        returns (uint256[] requestId);
+        returns (uint256[] requestIds)
+    {
+        User u = users[_beneficiarAddr];
+        for (uint256 i = 0; i < u.requests.length; i++) {
+            Request r = requests[u.requests[i]];
+            if (r.networkId == _networkId || _networkId == 0) {
+                requestIds.push(u.requests[i]);
+            }
+        }
+
+        return requestIds;
+    }
 
     /**
      * @dev returns  only the pending requsts for a specific public address of a chain (all assets)
-     * @param beneficiarAddr is the public address on the target chain
-     * @param networkId - the network Id according to https://chainlist.org/
-     * @return requestId - Returns an array of of locked ids of pending only locks for all assets of an owner
+     * @dev if _networkId is zero then it returns all pending requests of all chains
+     * @param _beneficiarAddr is the ecoc public address of the user
+     * @param _networkId - the network Id according to https://chainlist.org/
+     * @return uint256[] - Returns an array of of locked ids of pending only locks for all assets of an owner
      */
     function getPendingRequests(uint256 beneficiarAddr, uint256 networkId)
         external
         view
-        returns (uint256[] requestId);
+        returns (uint256[] requestIds)
+    {
+        User u = users[_beneficiarAddr];
+        for (uint256 i = 0; i < u.requests.length; i++) {
+            Request r = requests[u.requests[i]];
+            if (r.networkId == _networkId || _networkId == 0) {
+                if (!r.completed) {
+                    requestIds.push(u.requests[i]);
+                }
+            }
+        }
+
+        return requestIds;
+    }
 
     /**
      * @dev checks if the txid of burned assets has been comleted (assets unlocked)

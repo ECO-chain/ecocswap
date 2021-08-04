@@ -55,9 +55,10 @@ interface ICC20User {
 
     /**
      * @dev gets all requests for a specific public address of a chain (all assets)
-     * @param beneficiarAddr is the public address on the target chain
+     * @dev if networkId is zero then it returns all requests  of all chains
+     * @param beneficiarAddr is the ecoc public address of the user
      * @param networkId - the network Id according to https://chainlist.org/
-     * @return requestId - Returns an array of locked ids for all locked assets of an owner
+     * @return uint256[] - Returns an array of locked ids for all locked assets of a user
      */
     function getAllRequests(uint256 beneficiarAddr, uint256 networkId)
         external
@@ -66,9 +67,10 @@ interface ICC20User {
 
     /**
      * @dev returns  only the pending requsts for a specific public address of a chain (all assets)
-     * @param beneficiarAddr is the public address on the target chain
+     * @dev if networkId is zero then it returns all pending requests of all chains
+     * @param beneficiarAddr is the ecoc public address of the user
      * @param networkId - the network Id according to https://chainlist.org/
-     * @return requestId - Returns an array of of locked ids of pending only locks for all assets of an owner
+     * @return uint256[] - Returns an array of of locked ids of pending only locks for all assets of an owner
      */
     function getPendingRequests(uint256 beneficiarAddr, uint256 networkId)
         external
