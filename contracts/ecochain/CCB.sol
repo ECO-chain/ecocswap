@@ -320,7 +320,7 @@ contract CCB {
         /* check if asset is active on target chain */
         require(a.network[_networkId]);
 
-        require(_beneficiar.transfer(_amount));
+        _beneficiar.transfer(_amount);
 
         Release storage rel = releases[nextReleaseId];
         User storage u = users[_beneficiar];
@@ -391,7 +391,14 @@ contract CCB {
      * @dev withdraws accumulated gasCosts (the whole balance of an oracle)
      * @dev it fails on zero balance
      */
-    function withdrawGasCosts() external payable;
+    function withdrawGasCosts() external payable {
+        Oracle storage oracle = oracles[msg.sender];
+        require(oracle.availableAmount > 0);
+
+        uint256 amount = oracle.availableAmount;
+        oracle.availableAmount = 0;
+        msg.sender.transfer(amount);
+    }
 
     ////////////////////////////////////////////////
 
