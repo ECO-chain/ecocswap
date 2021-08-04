@@ -245,7 +245,6 @@ contract CCB {
         emit RetrieveFeesEvent(_tokenAddr, amount);
     }
 
-    /////////////// oracles ///////////////////////
     /**
      * @dev unlocks ECRC20 tokens after detecting that tokens are burned on target chain
      * @notice gas is paid by oracle
@@ -400,9 +399,6 @@ contract CCB {
         msg.sender.transfer(amount);
     }
 
-    ////////////////////////////////////////////////
-
-    /////////////// users ///////////////////////
     /**
      * @dev locks ERC20
      * @notice token holder must approve() first to this smart contract the amount of token
@@ -683,7 +679,7 @@ contract CCB {
 
     /**
      * @notice returns information about a request
-     * @param requestId - the request id
+     * @param _requestId - the request id
      * @return uint256 - the network id
      * @return address - creator's address of request
      * @return uint256 - beneficiar on target chain (address in hex)
@@ -695,7 +691,7 @@ contract CCB {
      * @return bool - true on pending
      * @return bool - true on completed
      */
-    function getRequestInfo(uint256 requestId)
+    function getRequestInfo(uint256 _requestId)
         external
         view
         returns (
@@ -705,14 +701,31 @@ contract CCB {
             address asset,
             uint256 amount,
             uint256 gasCosts,
+            uint256 adminFee,
             uint256 txid,
             bool pending,
             bool completed
+        )
+    {
+        Request memory r = requests[_requestId];
+
+        return (
+            r.networkId,
+            r.requester,
+            r.beneficiar,
+            r.asset,
+            r.amount,
+            r.gasCost,
+            r.adminFee,
+            r.txid,
+            r.pending,
+            r.completed
         );
+    }
 
     /**
      * @notice returns information about a request
-     * @param releaseId - the release id
+     * @param _releaseId - the release id
      * @return uint256 - txid on target chain. Zero is returns if pending
      * @return uint256 - the network id
      * @return address - oracle address that carried out the unlocking
@@ -720,7 +733,7 @@ contract CCB {
      * @return address - the ECRC20 asset
      * @return uint256 - amount
      */
-    function getReleaseInfo(uint256 releaseId)
+    function getReleaseInfo(uint256 _releaseId)
         external
         view
         returns (
@@ -730,7 +743,10 @@ contract CCB {
             uint256 beneficiar,
             address asset,
             uint256 amount
-        );
+        )
+    {
+        Release memory r = releases[_releaseId];
 
-    ////////////////////////////////////////////////
+        return (r.networkId, r.txid, r.oracle, r.beneficiar, r.asset, r.amount);
+    }
 }
