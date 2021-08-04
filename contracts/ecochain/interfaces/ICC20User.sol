@@ -139,6 +139,57 @@ interface ICC20User {
         view
         returns (bool auth);
 
+    /**
+     * @notice returns information about a request
+     * @param requestId - the request id
+     * @return uint256 - the network id
+     * @return address - creator's address of request
+     * @return uint256 - beneficiar on target chain (address in hex)
+     * @return address - the ECRC20 asset
+     * @return uint256 - amount
+     * @return uint256 - gas cost
+     * @return uint256 - admin fee
+     * @return uint256 - txid on target chain. Zero is returns if pending
+     * @return bool - true on pending
+     * @return bool - true on completed
+     */
+    function getRequestInfo(uint256 requestId)
+        external
+        view
+        returns (
+            uint256 networkId,
+            address requester,
+            uint256 beneficiar,
+            address asset,
+            uint256 amount,
+            uint256 gasCosts,
+            uint256 txid,
+            bool pending,
+            bool completed
+        );
+
+    /**
+     * @notice returns information about a request
+     * @param releaseId - the release id
+     * @return uint256 - txid on target chain. Zero is returns if pending
+     * @return uint256 - the network id
+     * @return address - oracle address that carried out the unlocking
+     * @return address - beneficiar public address
+     * @return address - the ECRC20 asset
+     * @return uint256 - amount
+     */
+    function getReleaseInfo(uint256 releaseId)
+        external
+        view
+        returns (
+            uint256 networkId,
+            uint256 txid,
+            address oracle,
+            uint256 beneficiar,
+            address asset,
+            uint256 amount
+        );
+
     /* Events */
     event LockERC20Event(
         address tokenAddr,
