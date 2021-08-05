@@ -1,6 +1,6 @@
 /* License: GPL-3.0 https://www.gnu.org/licenses/gpl-3.0.en.html */
 
-pragma solidity ^0.4.20;
+pragma solidity 0.4.21;
 
 import "./libs/SafeMath.sol";
 
@@ -97,7 +97,7 @@ contract CCB {
     mapping(address => User) private users;
 
     struct Oracle {
-        bool[] network; /* is authorized for a chain. Index is the chain id */
+        mapping(uint256 => bool) network; /* network id to auth flag */
         uint256 availableAmount; /* accumulated gas costs, can be withdrawn */
     }
     mapping(address => Oracle) private oracles;
@@ -147,7 +147,7 @@ contract CCB {
     }
 
     modifier oracleOnly(uint256 _networkId) {
-        Oracle memory oracle = oracles[msg.sender];
+        Oracle storage oracle = oracles[msg.sender];
         require(oracle.network[_networkId]);
         _;
     }
@@ -675,7 +675,7 @@ contract CCB {
         view
         returns (bool auth)
     {
-        Oracle memory oracle = oracles[_oracle];
+        Oracle storage oracle = oracles[_oracle];
         return oracle.network[_networkId];
     }
 
