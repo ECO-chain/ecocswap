@@ -77,7 +77,7 @@ contract CCB {
     mapping(uint256 => Release) private releases;
 
     struct Asset {
-        bool[] network;
+        mapping(uint256 => bool) network;
         /* statistics */
         uint256 lockedAmount;
         uint256 pendingAmount;
