@@ -441,6 +441,7 @@ contract CCB {
             _amount
         );
         amount = _amount.sub(adminFee);
+        adminFees[_tokenAddr]=adminFees[_tokenAddr].add(adminFee);
 
         Request storage r = requests[nextRequestId];
         User storage u = users[msg.sender];
