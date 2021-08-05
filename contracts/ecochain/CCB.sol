@@ -453,6 +453,7 @@ contract CCB {
         r.asset = _tokenAddr;
         r.amount = amount;
         r.gasCost = msg.value;
+        r.adminFee = adminFee;
         r.pending = true;
 
         /* update statistics for asset*/
