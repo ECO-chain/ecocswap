@@ -431,15 +431,12 @@ contract CCB {
         /* user must approve() the smart contract first */
         require(ecrcToken.transferFrom(msg.sender, address(this), _amount));
 
-        uint256 adminFee;
         uint256 amount = _amount;
-        /* save some gas if fee rate is zero */
-        if (adminFeeRates[_tokenAddr][_networkId] != 0) {
-            adminFee = (uint256(adminFeeRates[_tokenAddr][_networkId]))
-                .mul(_amount)
-                .div(1e4);
-            amount = _amount.sub(adminFee);
-        }
+        uint256 adminFee = computeFee(
+            adminFeeRates[_tokenAddr][_networkId],
+            _amount
+        );
+        amount = _amount.sub(adminFee);
 
         Request storage r = requests[nextRequestId];
         User storage u = users[msg.sender];
@@ -753,5 +750,26 @@ contract CCB {
         Release memory r = releases[_releaseId];
 
         return (r.networkId, r.txid, r.oracle, r.beneficiar, r.asset, r.amount);
+    }
+
+    /**
+     * @notice returns the fee
+     * @param _feeRate - fee rate (uint8)
+     * @param _amount - amount
+     * @return uint256 - fee
+     */
+    function computeFee(uint8 _feeRate, uint256 _amount)
+        internal
+        pure
+        returns (uint256 fee)
+    {
+        /* save some gas */
+        if (_feeRate == 0 || _amount == 0) {
+            return 0;
+        }
+
+        fee = (uint256(_feeRate)).mul(_amount);
+        fee = fee.div(1e4);
+        return fee;
     }
 }
