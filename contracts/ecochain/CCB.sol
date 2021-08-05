@@ -212,6 +212,9 @@ contract CCB {
         /* if admin fee is higher than maximum revert */
         require(_feeRate <= maxAdminFee);
 
+        /* also forbid admin to set any fees for ECOC for any chain */
+        require(!(_tokenAddr == zeroAddr && _feeRate != 0));
+
         Asset storage asset = assets[_tokenAddr];
         /* if asset already exists for the target chain revert */
         require(!asset.network[_networkId]);
