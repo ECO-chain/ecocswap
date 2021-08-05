@@ -5,7 +5,7 @@ pragma solidity 0.4.21;
  */
 interface ICC20User {
     /**
-     * @dev locks ERC20
+     * @dev locks ECRC20
      * @notice token holder must approve() first to this smart contract the amount of token
      * @notice the user must also send to contract an equal amount (or more) of ECOC thet gets by calling getGasCost()
      * @param tokenAddr - the token's ECRC20 smart contract address
@@ -13,7 +13,7 @@ interface ICC20User {
      * @param networkId - the network Id according to https://chainlist.org/
      * @param amount - quantity of tokens
      */
-    function lockERC20(
+    function lockECRC20(
         address tokenAddr,
         uint256 beneficiarAddr,
         uint256 networkId,

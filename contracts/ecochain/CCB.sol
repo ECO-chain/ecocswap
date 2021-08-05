@@ -404,7 +404,7 @@ contract CCB {
     }
 
     /**
-     * @dev locks ERC20
+     * @dev locks ECRC20
      * @notice token holder must approve() first to this smart contract the amount of token
      * @notice the user must also send to contract an equal amount (or more) of ECOC thet gets by calling getGasCost()
      * @param _tokenAddr - the token's ECRC20 smart contract address
@@ -412,7 +412,7 @@ contract CCB {
      * @param _networkId - the network Id according to https://chainlist.org/
      * @param _amount - quantity of tokens
      */
-    function lockERC20(
+    function lockECRC20(
         address _tokenAddr,
         uint256 _beneficiarAddr,
         uint256 _networkId,
@@ -448,7 +448,7 @@ contract CCB {
         r.beneficiar = _beneficiarAddr; /* public address in hex for target chain */
         r.asset = _tokenAddr;
         r.amount = amount;
-        r.gasCost = cost;
+        r.gasCost = msg.value;
         r.pending = true;
 
         /* update statistics for asset*/
