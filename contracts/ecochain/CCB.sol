@@ -368,6 +368,7 @@ contract CCB {
         Request storage r = requests[_requestId];
         require(oracle.network[r.networkId]);
 
+        require(r.pending);
         r.pending = false;
         r.completed = true;
         r.txid = _txid;
