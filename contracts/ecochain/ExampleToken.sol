@@ -135,10 +135,7 @@ contract ExampleToken is IECRC20 {
         _approve(
             sender,
             _msgSender(),
-            _allowances[sender][_msgSender()].sub(
-                amount,
-                "ECRC20: transfer amount exceeds allowance"
-            )
+            _allowances[sender][_msgSender()].sub(amount)
         );
         return true;
     }
@@ -188,10 +185,7 @@ contract ExampleToken is IECRC20 {
         _approve(
             _msgSender(),
             spender,
-            _allowances[_msgSender()][spender].sub(
-                subtractedValue,
-                "ECRC20: decreased allowance below zero"
-            )
+            _allowances[_msgSender()][spender].sub(subtractedValue)
         );
         return true;
     }
@@ -221,12 +215,7 @@ contract ExampleToken is IECRC20 {
             "ECRC20: transfer to the zero address"
         );
 
-        _beforeTokenTransfer(sender, recipient, amount);
-
-        _balances[sender] = _balances[sender].sub(
-            amount,
-            "ECRC20: transfer amount exceeds balance"
-        );
+        _balances[sender] = _balances[sender].sub(amount);
         _balances[recipient] = _balances[recipient].add(amount);
         emit Transfer(sender, recipient, amount);
     }
@@ -266,26 +255,6 @@ contract ExampleToken is IECRC20 {
     function _setupDecimals(uint8 decimals_) internal {
         _decimals = decimals_;
     }
-
-    /**
-     * @dev Hook that is called before any transfer of tokens. This includes
-     * minting and burning.
-     *
-     * Calling conditions:
-     *
-     * - when `from` and `to` are both non-zero, `amount` of ``from``'s tokens
-     * will be to transferred to `to`.
-     * - when `from` is zero, `amount` tokens will be minted for `to`.
-     * - when `to` is zero, `amount` of ``from``'s tokens will be burned.
-     * - `from` and `to` are never both zero.
-     *
-     * To learn more about hooks, head to xref:ROOT:extending-contracts.adoc#using-hooks[Using Hooks].
-     */
-    function _beforeTokenTransfer(
-        address from,
-        address to,
-        uint256 amount
-    ) internal {}
 
     function _msgSender() internal view returns (address) {
         return msg.sender;

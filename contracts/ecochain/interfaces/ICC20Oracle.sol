@@ -32,7 +32,7 @@ interface ICC20Oracle {
      * @param amount - amount of ECOC to be unlocked
      */
     function unlockECOC(
-        address beneficiarAddr,
+        address beneficiar,
         uint256 networkId,
         uint256 txid,
         uint256 amount
