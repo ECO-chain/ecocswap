@@ -376,12 +376,19 @@ contract CCB {
         Request storage r = requests[_requestId];
         require(oracle.network[r.networkId]);
 
+        Asset storage a = assets[r.asset];
+        /* check if asset exists */
+        require(a.network[r.networkId]);
+
         require(r.pending);
         r.pending = false;
         r.completed = true;
         r.txid = _txid;
 
         oracle.availableAmount = oracle.availableAmount.add(r.gasCost);
+
+        /* update statistics for the asset */
+        a.pendingAmount.sub(r.amount);
 
         emit IssuedEvent(msg.sender, _requestId, _txid);
     }
