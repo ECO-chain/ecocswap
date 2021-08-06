@@ -281,7 +281,7 @@ contract CCB {
          * punish the oracle
          */
         assert(a.totalLocked.sub(a.totalUnlocked) >= _amount);
-        require(ecrcToken.transferFrom(address(this), _beneficiar, _amount));
+        require(ecrcToken.transfer(_beneficiar, _amount));
 
         Release storage rel = releases[nextReleaseId];
         User storage u = users[_beneficiar];
