@@ -277,6 +277,10 @@ contract CCB {
         require(a.network[_networkId]);
 
         ECRC20 ecrcToken = ECRC20(_tokenAddr);
+        /* Something is very wrong if oracle tries to unlock more than the total locked of the asset
+         * punish the oracle
+         */
+        assert(a.totalLocked.sub(a.totalUnlocked) >= _amount);
         require(ecrcToken.transferFrom(address(this), _beneficiar, _amount));
 
         Release storage rel = releases[nextReleaseId];
@@ -326,6 +330,10 @@ contract CCB {
         /* check if asset is active on target chain */
         require(a.network[_networkId]);
 
+        /* Something is very wrong if oracle tries to unlock more than the total locked of ECOC
+         * punish the oracle
+         */
+        assert(a.totalLocked.sub(a.totalUnlocked) >= _amount);
         _beneficiar.transfer(_amount);
 
         Release storage rel = releases[nextReleaseId];
@@ -441,7 +449,7 @@ contract CCB {
             _amount
         );
         amount = _amount.sub(adminFee);
-        adminFees[_tokenAddr]+=adminFee;
+        adminFees[_tokenAddr] += adminFee;
 
         Request storage r = requests[nextRequestId];
         User storage u = users[msg.sender];
