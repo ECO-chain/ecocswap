@@ -423,7 +423,7 @@ contract CCB {
         uint256 _amount
     ) external payable {
         uint256 cost = _getGasCost(_networkId);
-        require(msg.value > cost);
+        require(msg.value >= cost);
 
         Asset storage a = assets[_tokenAddr];
         /* check if asset is active on target chain */
@@ -441,7 +441,7 @@ contract CCB {
             _amount
         );
         amount = _amount.sub(adminFee);
-        adminFees[_tokenAddr]=adminFees[_tokenAddr].add(adminFee);
+        adminFees[_tokenAddr]+=adminFee;
 
         Request storage r = requests[nextRequestId];
         User storage u = users[msg.sender];
