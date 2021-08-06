@@ -624,7 +624,7 @@ contract CCB {
         returns (uint256 amount)
     {
         Asset memory a = assets[_tokenAddr];
-        uint256 locked = a.totalLocked.sub(a.totalLocked);
+        uint256 locked = a.totalLocked.sub(a.totalUnlocked);
         return locked;
     }
 
