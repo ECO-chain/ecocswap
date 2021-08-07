@@ -390,7 +390,7 @@ contract CCB {
         oracle.availableAmount = oracle.availableAmount.add(r.gasCost);
 
         /* update statistics for the asset */
-        a.pendingAmount.sub(r.amount);
+        a.pendingAmount = a.pendingAmount.sub(r.amount);
 
         emit IssuedEvent(msg.sender, _requestId, _txid);
     }
@@ -574,20 +574,18 @@ contract CCB {
     function getAllRequests(address _userAddr, uint256 _networkId)
         external
         view
-        returns (uint256[] requestIds)
+        returns (uint256[])
     {
         User memory u = users[_userAddr];
-        uint256 size = u.requests.length;
-        for (uint256 i = 0; i < size; i++) {
+        uint256[] storage requestIds;
+        for (uint256 i = 0; i < u.requests.length; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
-                continue;
+                requestIds.push(u.requests[i]);
             }
-            delete u.requests[i];
-            i--;
         }
 
-        return u.requests;
+        return requestIds;
     }
 
     /**
@@ -600,22 +598,21 @@ contract CCB {
     function getPendingRequests(address _userAddr, uint256 _networkId)
         external
         view
-        returns (uint256[] requestIds)
+        returns (uint256[])
     {
         User memory u = users[_userAddr];
+        uint256[] storage requestIds;
         uint256 size = u.requests.length;
         for (uint256 i = 0; i < size; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 if (!r.completed) {
-                    continue;
+                    requestIds.push(u.requests[i]);
                 }
             }
-            delete u.requests[i];
-            i--;
         }
 
-        return u.requests;
+        return requestIds;
     }
 
     /**
