@@ -296,6 +296,7 @@ contract CCB {
         rel.amount = _amount;
 
         /* update statistics for asset*/
+        a.lockedAmount = a.lockedAmount.sub(_amount);
         a.totalUnlocked = a.totalUnlocked.add(_amount);
 
         /* update statistics for user */
@@ -349,6 +350,7 @@ contract CCB {
         rel.amount = _amount;
 
         /* update statistics for asset*/
+        a.lockedAmount = a.lockedAmount.sub(_amount);
         a.totalUnlocked = a.totalUnlocked.add(_amount);
 
         /* update statistics for user */
@@ -574,16 +576,18 @@ contract CCB {
         view
         returns (uint256[] requestIds)
     {
-        uint256[] storage allRequests;
         User memory u = users[_userAddr];
-        for (uint256 i = 0; i < u.requests.length; i++) {
+        uint256 size = u.requests.length;
+        for (uint256 i = 0; i < size; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
-                allRequests.push(u.requests[i]);
+                continue;
             }
+            delete u.requests[i];
+            i--;
         }
 
-        return allRequests;
+        return u.requests;
     }
 
     /**
@@ -598,18 +602,52 @@ contract CCB {
         view
         returns (uint256[] requestIds)
     {
-        uint256[] storage allReleases;
         User memory u = users[_userAddr];
-        for (uint256 i = 0; i < u.requests.length; i++) {
+        uint256 size = u.requests.length;
+        for (uint256 i = 0; i < size; i++) {
             Request memory r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 if (!r.completed) {
-                    allReleases.push(u.requests[i]);
+                    continue;
                 }
             }
+            delete u.requests[i];
+            i--;
         }
 
-        return allReleases;
+        return u.requests;
+    }
+
+    /**
+     * @notice returns statistics for an asset
+     * @dev use zero addresss for ECOC
+     * @param _assetAddr is the ECRC20 address
+     * @return uint256 - locked amount
+     * @return uint256 - pending amount
+     * @return uint256 - totally locked
+     * @return uint256 - totally ulocked
+     * @return uint256 - admin fees in total
+     */
+    function getAssetInfo(address _assetAddr)
+        external
+        view
+        returns (
+            uint256 lockedAmount,
+            uint256 pendingAmount,
+            uint256 totalLocked,
+            uint256 totalUnlocked,
+            uint256 totalFees
+        )
+    {
+        Asset memory a = assets[_assetAddr];
+
+        return (
+            a.lockedAmount,
+            a.pendingAmount,
+            a.totalLocked,
+            a.totalUnlocked,
+            a.totalFees
+        );
     }
 
     /**

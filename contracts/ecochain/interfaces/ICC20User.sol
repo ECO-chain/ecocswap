@@ -78,6 +78,27 @@ interface ICC20User {
         returns (uint256[] requestId);
 
     /**
+     * @notice returns statistics for an asset
+     * @dev use zero addresss for ECOC
+     * @param _assetAddr is the ECRC20 address
+     * @return uint256 - locked amount
+     * @return uint256 - pending amount
+     * @return uint256 - totally locked
+     * @return uint256 - totally ulocked
+     * @return uint256 - admin fees in total
+     */
+    function getAssetInfo(address _assetAddr)
+        external
+        view
+        returns (
+            uint256 lockedAmount,
+            uint256 pendingAmount,
+            uint256 totalLocked,
+            uint256 totalUnlocked,
+            uint256 totalFees
+        );
+
+    /**
      * @dev checks if the txid of burned assets has been comleted (assets unlocked)
      * @param requestId - the id of the locked request
      * @return completed - Return a boolean(true if the wrapped asset is issued on the target chain)
