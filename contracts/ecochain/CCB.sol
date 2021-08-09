@@ -1,6 +1,6 @@
 /* License: GPL-3.0 https://www.gnu.org/licenses/gpl-3.0.en.html */
 
-pragma solidity 0.4.21;
+pragma solidity ^0.4.20;
 
 import "./libs/SafeMath.sol";
 
@@ -564,18 +564,32 @@ contract CCB {
     function getAllRequests(address _userAddr, uint256 _networkId)
         external
         view
-        returns (uint256[])
+        returns (uint256[] requestIds)
     {
         User memory u = users[_userAddr];
-        uint256[] storage requestIds;
-        for (uint256 i = 0; i < u.requests.length; i++) {
-            Request memory r = requests[u.requests[i]];
+        uint256 l = u.requests.length;
+        uint256 size = 0;
+        Request memory r;
+
+        /* compute length first*/
+        for (uint256 i = 0; i < l; i++) {
+            r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
-                requestIds.push(u.requests[i]);
+                size++;
             }
         }
 
-        return requestIds;
+        uint256[] memory userRequests = new uint256[](size);
+        uint256 next = 0;
+        for (i = 0; i < l; i++) {
+            r = requests[u.requests[i]];
+            if (r.networkId == _networkId || _networkId == 0) {
+                userRequests[next] = u.requests[i];
+                next++;
+            }
+        }
+
+        return userRequests;
     }
 
     /**
@@ -588,21 +602,36 @@ contract CCB {
     function getPendingRequests(address _userAddr, uint256 _networkId)
         external
         view
-        returns (uint256[])
+        returns (uint256[] requestIds)
     {
         User memory u = users[_userAddr];
-        uint256[] storage requestIds;
-        uint256 size = u.requests.length;
-        for (uint256 i = 0; i < size; i++) {
-            Request memory r = requests[u.requests[i]];
+        uint256 l = u.requests.length;
+        uint256 size = 0;
+        Request memory r;
+
+        /* compute length first*/
+        for (uint256 i = 0; i < l; i++) {
+            r = requests[u.requests[i]];
             if (r.networkId == _networkId || _networkId == 0) {
                 if (!r.completed) {
-                    requestIds.push(u.requests[i]);
+                    size++;
                 }
             }
         }
 
-        return requestIds;
+        uint256[] memory pendingRequests = new uint256[](size);
+        uint256 next = 0;
+        for (i = 0; i < l; i++) {
+            r = requests[u.requests[i]];
+            if (r.networkId == _networkId || _networkId == 0) {
+                if (!r.completed) {
+                    pendingRequests[next] = u.requests[i];
+                    next++;
+                }
+            }
+        }
+
+        return pendingRequests;
     }
 
     /**
