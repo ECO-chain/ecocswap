@@ -90,9 +90,6 @@ contract CCB {
     struct User {
         uint256[] requests;
         uint256[] releases;
-        /* statistics
-         * what statistics are needed for users
-         */
     }
     mapping(address => User) private users;
 
@@ -299,8 +296,6 @@ contract CCB {
         a.lockedAmount = a.lockedAmount.sub(_amount);
         a.totalUnlocked = a.totalUnlocked.add(_amount);
 
-        /* update statistics for user */
-
         emit UnlockERC20Event(
             msg.sender,
             _tokenAddr,
@@ -352,8 +347,6 @@ contract CCB {
         /* update statistics for asset*/
         a.lockedAmount = a.lockedAmount.sub(_amount);
         a.totalUnlocked = a.totalUnlocked.add(_amount);
-
-        /* update statistics for user */
 
         emit UnlockECOCEvent(
             msg.sender,
@@ -480,7 +473,6 @@ contract CCB {
         a.totalLocked = a.totalLocked.add(amount);
         a.totalFees = a.totalFees.add(adminFee);
 
-        /* update statistics for user */
         emit LockERC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount);
     }
 
@@ -523,9 +515,7 @@ contract CCB {
         a.pendingAmount = a.pendingAmount.add(lockedAmount);
         a.totalLocked = a.totalLocked.add(lockedAmount);
 
-        /* update statistics for user */
-
-        emit LockECOCEvent(_beneficiarAddr, _networkId, msg.value);
+        emit LockECOCEvent(_beneficiarAddr, _networkId, lockedAmount);
     }
 
     /**
