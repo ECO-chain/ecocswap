@@ -55,7 +55,7 @@ contract CCB {
     struct Request {
         uint256 networkId;
         address requester;
-        uint256 beneficiar;
+        address beneficiar;
         address asset;
         uint256 amount;
         uint256 gasCost;
@@ -128,12 +128,12 @@ contract CCB {
     event WithdrawGasCostsEvent(address oracle, uint256 amount);
     event LockERC20Event(
         address tokenAddr,
-        uint256 beneficiarAddr,
+        address beneficiarAddr,
         uint256 networkId,
         uint256 amount
     );
     event LockECOCEvent(
-        uint256 beneficiarAddr,
+        address beneficiarAddr,
         uint256 networkId,
         uint256 amount
     );
@@ -428,7 +428,7 @@ contract CCB {
      */
     function lockECRC20(
         address _tokenAddr,
-        uint256 _beneficiarAddr,
+        address _beneficiarAddr,
         uint256 _networkId,
         uint256 _amount
     ) external payable {
@@ -483,7 +483,7 @@ contract CCB {
      * @param _beneficiarAddr is the public address on the target chain
      * @param _networkId - the network Id according to https://chainlist.org/
      */
-    function lockECOC(uint256 _beneficiarAddr, uint256 _networkId)
+    function lockECOC(address _beneficiarAddr, uint256 _networkId)
         external
         payable
     {
@@ -774,7 +774,7 @@ contract CCB {
         returns (
             uint256 networkId,
             address requester,
-            uint256 beneficiar,
+            address beneficiar,
             address asset,
             uint256 amount,
             uint256 gasCost,

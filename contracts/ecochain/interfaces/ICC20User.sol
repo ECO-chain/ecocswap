@@ -15,7 +15,7 @@ interface ICC20User {
      */
     function lockECRC20(
         address tokenAddr,
-        uint256 beneficiarAddr,
+        address beneficiarAddr,
         uint256 networkId,
         uint256 amount
     ) external payable;
@@ -27,7 +27,7 @@ interface ICC20User {
      * @param beneficiarAddr is the public address on the target chain
      * @param networkId - the network Id according to https://chainlist.org/
      */
-    function lockECOC(uint256 beneficiarAddr, uint256 networkId)
+    function lockECOC(address beneficiarAddr, uint256 networkId)
         external
         payable;
 
@@ -216,12 +216,12 @@ interface ICC20User {
     /* Events */
     event LockERC20Event(
         address tokenAddr,
-        uint256 beneficiarAddr,
+        address beneficiarAddr,
         uint256 networkId,
         uint256 amount
     );
     event LockECOCEvent(
-        uint256 beneficiarAddr,
+        address beneficiarAddr,
         uint256 networkId,
         uint256 amount
     );

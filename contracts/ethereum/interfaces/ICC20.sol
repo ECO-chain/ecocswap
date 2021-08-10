@@ -66,11 +66,11 @@ interface ICC20 {
      * @notice Can be triggered by owners of the token
      * @dev Burns tokens of a user. It is a prerequest to unlock an equal amount of tokens (or ECOC) on ECOCHAIN
      * @dev triggered only by the owner of the tokens
-     * @param beneficiar - hex of the ecochain's public address to which the original tokens will be unlocked
+     * @param beneficiar - hex of the ecochain's (not ethereum) public address to which the original tokens will be unlocked
      * @param amount - amount of tokens. Should be equal or less of owner's balance
      * @return bool - true on success
      */
-    function burn(uint256 beneficiar, uint256 amount) external returns (bool);
+    function burn(address beneficiar, uint256 amount) external returns (bool);
 
     /* Events */
     event AuthOracle(address oracle, bool authorized);
@@ -80,5 +80,5 @@ interface ICC20 {
         uint256 amount,
         uint256 requestId
     );
-    event ButnEvent(address burner, uint256 beneficiar, uint256 amount);
+    event ButnEvent(address burner, address beneficiar, uint256 amount);
 }
