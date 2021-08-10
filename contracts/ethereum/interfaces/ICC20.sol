@@ -27,7 +27,7 @@ interface ICC20 {
     /**
      * @dev Returns the original symbol of the token on ECOCHAIN
      */
-    function originalSymbol() external view returns (uint8);
+    function originalSymbol() external view returns (string memory);
 
     /**
      * @dev Returns the smart contract address of the token on ECOCHAIN
@@ -80,5 +80,5 @@ interface ICC20 {
         uint256 amount,
         uint256 requestId
     );
-    event ButnEvent(address burner, address beneficiar, uint256 amount);
+    event BurnEvent(address burner, address beneficiar, uint256 amount);
 }
