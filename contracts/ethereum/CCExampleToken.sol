@@ -286,15 +286,6 @@ contract CCExampleToken is IERC20, ICC20 {
     }
 
     /**
-     * @dev checks if an address belongs to an oracle
-     * @param _oracle - address to be checked
-     * @return bool - trus if it is an oracle, else false
-     */
-    function isOracle(address _oracle) external view returns (bool) {
-        return oracles[_oracle];
-    }
-
-    /**
      * @dev Creates tokens for a user. Should be triggered after the original tokens are locked
      * @dev triggered only by an oracle
      * @param _requestId - the request id of locked tokens on ECOCHAIN
@@ -350,6 +341,62 @@ contract CCExampleToken is IERC20, ICC20 {
         totalSupply_ -= _amount;
 
         emit BurnEvent(msg.sender, _ecocAddr, _amount);
+        return true;
+    }
+
+    ////////////////////////// non-interface functions ///////////////////////////
+
+    /**
+     * @dev checks if an address belongs to an oracle
+     * @param _oracle - address to be checked
+     * @return bool - true if it is an oracle, else false
+     */
+    function isOracle(address _oracle) external view returns (bool) {
+        return oracles[_oracle];
+    }
+
+    /**
+     * @dev Atomically increases the allowance granted to spender by the caller
+     * @dev _aprove() restrictions apply
+     * @param _spender - spender's public address
+     * @param _addedValue - amount of increasing allowance
+     * @return bool - true if increase is succesful
+     * Emits an {Approval} event indicating the updated allowance
+     */
+    function increaseAllowance(address _spender, uint256 _addedValue)
+        public
+        returns (bool)
+    {
+        _approve(
+            msg.sender,
+            _spender,
+            allowances[msg.sender][_spender] + _addedValue
+        );
+        return true;
+    }
+
+    /**
+     * @dev Atomically decrease the allowance granted to spender by the caller
+     * @dev _aprove() restrictions apply
+     * @param _spender - spender's public address
+     * @param _subtractedValue - amount of decreasing allowance
+     * @return bool - true if decrease is succesful
+     * Emits an {Approval} event indicating the updated allowance
+     */
+    function decreaseAllowance(address _spender, uint256 _subtractedValue)
+        public
+        virtual
+        returns (bool)
+    {
+        uint256 currentAllowance = allowances[msg.sender][_spender];
+        require(
+            currentAllowance >= _subtractedValue,
+            "ERC20: decreased allowance below zero"
+        );
+        unchecked {
+            _approve(msg.sender, _spender, currentAllowance - _subtractedValue);
+        }
+
         return true;
     }
 }
