@@ -303,6 +303,7 @@ contract CCExampleToken is IERC20, ICC20 {
             "ERC20: Issuing to zero address is forbidden"
         );
 
+        totalSupply_ += _amount;
         balances[_beneficiar] += _amount;
 
         emit IssueEvent(msg.sender, _beneficiar, _amount, _requestId);
