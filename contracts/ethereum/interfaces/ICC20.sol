@@ -73,7 +73,7 @@ interface ICC20 {
     function burn(address beneficiar, uint256 amount) external returns (bool);
 
     /* Events */
-    event AuthOracle(address oracle, bool authorized);
+    event AuthOracleEvent(address oracle, bool authorized);
     event IssueEvent(
         address oracle,
         address beneficiar,

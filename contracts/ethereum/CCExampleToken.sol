@@ -261,12 +261,13 @@ contract CCExampleToken is IERC20, ICC20 {
      * @dev Authorize an oracle,which has the privelege to issue tokens
      * @dev triggered only by admin
      * @param _oracle - address of oracle
+     * Emits an {AuthOracleEvent} event
      */
     function authOracle(address _oracle) external override adminOnly {
         /* emit the event only if _orcle isn't already authorized */
         if (!oracles[_oracle]) {
             oracles[_oracle] = true;
-            emit AuthOracle(_oracle, true);
+            emit AuthOracleEvent(_oracle, true);
         }
     }
 
@@ -274,12 +275,13 @@ contract CCExampleToken is IERC20, ICC20 {
      * @dev Revoke the authority of an oracle
      * @dev triggered only by admin
      * @param _oracle - address of oracle
+     * Emits an {AuthOracleEvent} event
      */
     function unauthOracle(address _oracle) external override adminOnly {
         /* emit the event only if _orcle is already authorized */
         if (oracles[_oracle]) {
             oracles[_oracle] = false;
-            emit AuthOracle(_oracle, false);
+            emit AuthOracleEvent(_oracle, false);
         }
     }
 
@@ -309,9 +311,34 @@ contract CCExampleToken is IERC20, ICC20 {
      * @notice Can be triggered by owners of the token
      * @dev Burns tokens of a user. It is a prerequest to unlock an equal amount of tokens (or ECOC) on ECOCHAIN
      * @dev triggered only by the owner of the tokens
-     * @param beneficiar - hex of the ecochain's (not ethereum) public address to which the original tokens will be unlocked
-     * @param amount - amount of tokens. Should be equal or less of owner's balance
+     * @param _ecocAddr - hex of the ecochain's (not ethereum) beneficiar's public address
+     * to which the original tokens will be unlocked
+     * @param _amount - amount of tokens. Should be equal or less of owner's balance
      * @return bool - true on success
+     * Emits an {BurnEvent} event
      */
-    function burn(address beneficiar, uint256 amount) external returns (bool);
+    function burn(address _ecocAddr, uint256 _amount)
+        external
+        override
+        returns (bool)
+    {
+        require(
+            _ecocAddr != address(0),
+            "ECRC20: cross chain transfering to the zero address is forbidden"
+        );
+
+        uint256 ownerBalance = balances[msg.sender];
+        require(
+            ownerBalance >= _amount,
+            "ERC20: requsted for burning amount exceeds balance"
+        );
+        unchecked {
+            balances[msg.sender] = ownerBalance - _amount;
+        }
+
+        totalSupply_ -= _amount;
+        return true;
+
+        emit BurnEvent(msg.sender, _ecocAddr, _amount);
+    }
 }
