@@ -55,12 +55,13 @@ interface ICC20 {
      * @param requestId - the request id of locked tokens on ECOCHAIN
      * @param beneficiar - ethereum public address to which the new tokens will be issued
      * @param amount - amount of tokens
+     * @return bool - true on success
      */
     function issue(
         uint256 requestId,
         address beneficiar,
         uint256 amount
-    ) external;
+    ) external returns (bool);
 
     /**
      * @notice Can be triggered by owners of the token

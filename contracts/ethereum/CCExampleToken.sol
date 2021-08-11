@@ -290,22 +290,33 @@ contract CCExampleToken is IERC20, ICC20 {
      * @param _oracle - address to be checked
      * @return bool - trus if it is an oracle, else false
      */
-    function isOracle(address _oracle) external returns (bool) {
+    function isOracle(address _oracle) external view returns (bool) {
         return oracles[_oracle];
     }
 
     /**
      * @dev Creates tokens for a user. Should be triggered after the original tokens are locked
      * @dev triggered only by an oracle
-     * @param requestId - the request id of locked tokens on ECOCHAIN
-     * @param beneficiar - ethereum public address to which the new tokens will be issued
-     * @param amount - amount of tokens
+     * @param _requestId - the request id of locked tokens on ECOCHAIN
+     * @param _beneficiar - ethereum public address to which the new tokens will be issued
+     * @param _amount - amount of tokens
+     * @return bool - true on success
      */
     function issue(
-        uint256 requestId,
-        address beneficiar,
-        uint256 amount
-    ) external;
+        uint256 _requestId,
+        address _beneficiar,
+        uint256 _amount
+    ) external override oracleOnly returns (bool) {
+        require(
+            _beneficiar != address(0),
+            "ERC20: Issuing to zero address is forbidden"
+        );
+
+        balances[_beneficiar] += _amount;
+
+        emit IssueEvent(msg.sender, _beneficiar, _amount, _requestId);
+        return true;
+    }
 
     /**
      * @notice Can be triggered by owners of the token
@@ -337,8 +348,8 @@ contract CCExampleToken is IERC20, ICC20 {
         }
 
         totalSupply_ -= _amount;
-        return true;
 
         emit BurnEvent(msg.sender, _ecocAddr, _amount);
+        return true;
     }
 }
