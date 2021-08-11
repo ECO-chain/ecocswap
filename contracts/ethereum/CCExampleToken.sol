@@ -260,24 +260,36 @@ contract CCExampleToken is IERC20, ICC20 {
     /**
      * @dev Authorize an oracle,which has the privelege to issue tokens
      * @dev triggered only by admin
-     * @param oracle - address of oracle
+     * @param _oracle - address of oracle
      */
-    function authOracle(address oracle) external override adminOnly;
+    function authOracle(address _oracle) external override adminOnly {
+        /* emit the event only if _orcle isn't already authorized */
+        if (!oracles[_oracle]) {
+            oracles[_oracle] = true;
+            emit AuthOracle(_oracle, true);
+        }
+    }
 
     /**
      * @dev Revoke the authority of an oracle
      * @dev triggered only by admin
-     * @param oracle - address of oracle
+     * @param _oracle - address of oracle
      */
-    function unauthOracle(address oracle) external override adminOnly;
+    function unauthOracle(address _oracle) external override adminOnly {
+        /* emit the event only if _orcle is already authorized */
+        if (oracles[_oracle]) {
+            oracles[_oracle] = false;
+            emit AuthOracle(_oracle, false);
+        }
+    }
 
     /**
      * @dev checks if an address belongs to an oracle
-     * @param oracle - address to be checked
+     * @param _oracle - address to be checked
      * @return bool - trus if it is an oracle, else false
      */
-    function isOracle(_address oracle) external returns (bool) {
-        return oracles[_address];
+    function isOracle(address _oracle) external returns (bool) {
+        return oracles[_oracle];
     }
 
     /**
