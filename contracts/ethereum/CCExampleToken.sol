@@ -130,6 +130,36 @@ contract CCExampleToken is IERC20, ICC20 {
     }
 
     /**
+     * @dev Moves amount tokens from _sender to _benefeciar using the
+     * allowance mechanism. _amount is then deducted from sender's
+     * allowance.
+     * @param _sender - sender's public address
+     * @param _beneficiar - beneficiar's public address
+     * @param _amount - amount to be transferred
+     * @return bool - true on success
+     * Emits a {Transfer} event
+     */
+
+    function transferFrom(
+        address _sender,
+        address _beneficiar,
+        uint256 _amount
+    ) public override returns (bool) {
+        _transfer(_sender, _beneficiar, _amount);
+
+        uint256 currentAllowance = allowances[_sender][msg.sender];
+        require(
+            currentAllowance >= _amount,
+            "ERC20: transfer amount exceeds allowance"
+        );
+        unchecked {
+            _approve(_sender, msg.sender, currentAllowance - _amount);
+        }
+
+        return true;
+    }
+
+    /**
      * @notice Internal function, to be called by transfer() and transferFrom()
      * @param _sender - the sender's public address
      * @param _beneficiar - target public address
@@ -224,21 +254,6 @@ contract CCExampleToken is IERC20, ICC20 {
         allowances[_owner][_spender] = _amount;
         emit Approval(_owner, _spender, _amount);
     }
-
-    /**
-     * @dev Moves `amount` tokens from `sender` to `recipient` using the
-     * allowance mechanism. `amount` is then deducted from the caller's
-     * allowance.
-     *
-     * Returns a boolean value indicating whether the operation succeeded.
-     *
-     * Emits a {Transfer} event.
-     */
-    function transferFrom(
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool);
 
     //////////////////////////// ICC20 ////////////////////////////////////
 
