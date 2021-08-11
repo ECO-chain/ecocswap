@@ -39,6 +39,11 @@ contract CCExampleToken is IERC20, ICC20 {
         _;
     }
 
+    modifier oracleOnly() {
+        require(oracles[msg.sender]);
+        _;
+    }
+
     /**
      * @dev Returns the name of the token.
      * @return string - name of token
@@ -187,13 +192,38 @@ contract CCExampleToken is IERC20, ICC20 {
      *
      * @param _spender - spender's public address
      * @param _amount - maximum amount of allowed tokens
-     * @return bool - 
+     * @return bool - true on success (it fails on zero address)
      * Emits an {Approval} event
      */
     function approve(address _spender, uint256 _amount)
         external
         override
-        returns (bool);
+        returns (bool)
+    {
+        _approve(msg.sender, _spender, _amount);
+        return true;
+    }
+
+    /**
+     * @dev Internal function. Used by approve(), transferFrom(), increaseAllowance() and decreaseAllowance()
+     * @dev It reverts on zero addreses (owner or spender)
+     * @param _owner - owner's public address
+     * @param _spender - spender's public address
+     * @param _amount - maximum amount of allowed tokens
+     * Emits an {Approval} event
+     */
+
+    function _approve(
+        address _owner,
+        address _spender,
+        uint256 _amount
+    ) internal {
+        require(_owner != address(0), "ERC20: approve from the zero address");
+        require(_spender != address(0), "ERC20: approve to the zero address");
+
+        allowances[_owner][_spender] = _amount;
+        emit Approval(_owner, _spender, _amount);
+    }
 
     /**
      * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -217,14 +247,23 @@ contract CCExampleToken is IERC20, ICC20 {
      * @dev triggered only by admin
      * @param oracle - address of oracle
      */
-    function authOracle(address oracle) adminOnly() external override;
+    function authOracle(address oracle) external override adminOnly;
 
     /**
      * @dev Revoke the authority of an oracle
      * @dev triggered only by admin
      * @param oracle - address of oracle
      */
-    function unauthOracle(address oracle) adminOnly() external override;
+    function unauthOracle(address oracle) external override adminOnly;
+
+    /**
+     * @dev checks if an address belongs to an oracle
+     * @param oracle - address to be checked
+     * @return bool - trus if it is an oracle, else false
+     */
+    function isOracle(_address oracle) external returns (bool) {
+        return oracles[_address];
+    }
 
     /**
      * @dev Creates tokens for a user. Should be triggered after the original tokens are locked
