@@ -109,7 +109,7 @@ contract CCB {
     event RemoveOracleEvent(address oracle, uint256 networkId);
     event AddAssetEvent(address tokenAddr, uint256 networkId, uint8 feeRate);
     event RetrieveFeesEvent(address tokenAddr, uint256 amount);
-    event UnlockERC20Event(
+    event UnlockECRC20Event(
         address oracle,
         address tokenAddr,
         address beneficiar,
@@ -126,7 +126,7 @@ contract CCB {
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
     event SetGasCostEvent(address oracle, uint256 cost, uint256 networkId);
     event WithdrawGasCostsEvent(address oracle, uint256 amount);
-    event LockERC20Event(
+    event LockECRC20Event(
         address tokenAddr,
         address beneficiarAddr,
         uint256 networkId,
@@ -296,7 +296,7 @@ contract CCB {
         a.lockedAmount = a.lockedAmount.sub(_amount);
         a.totalUnlocked = a.totalUnlocked.add(_amount);
 
-        emit UnlockERC20Event(
+        emit UnlockECRC20Event(
             msg.sender,
             _tokenAddr,
             _beneficiar,
@@ -473,7 +473,7 @@ contract CCB {
         a.totalLocked = a.totalLocked.add(amount);
         a.totalFees = a.totalFees.add(adminFee);
 
-        emit LockERC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount);
+        emit LockECRC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount);
     }
 
     /**
@@ -684,7 +684,7 @@ contract CCB {
      * @notice returns the total locked amount of an asset (token or ECOC).
      * @notice Oracle fees and admin fees are excluded
      * @dev pass the zero address if the asset is the ECOC
-     * @param _tokenAddr - ERC20 smart contract address or the zero address for ECOC
+     * @param _tokenAddr - ECRC20 smart contract address or the zero address for ECOC
      * @return uint256 - total locked amount of the asset
      */
     function getLockedAssets(address _tokenAddr)
@@ -714,7 +714,7 @@ contract CCB {
 
     /**
      * @dev balance of a token accumulated by admin fees and reduced with retrieveFees()
-     * @param _tokenAddr - ERC20 smart contract address
+     * @param _tokenAddr - ECRC20 smart contract address
      * @return uint256 - total balance of the token
      */
     function getAdminBalace(address _tokenAddr)
@@ -727,7 +727,7 @@ contract CCB {
 
     /**
      * @dev total token accumulated by admin fees (includes allready withdrawn)
-     * @param _tokenAddr - ERC20 smart contract address
+     * @param _tokenAddr - ECRC20 smart contract address
      * @return uint256 - total fees of the token
      */
     function getTotalAdminFee(address _tokenAddr)

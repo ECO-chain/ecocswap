@@ -112,7 +112,7 @@ interface ICC20User {
      * @notice returns the total locked amount of an asset (token or ECOC).
      * @notice Oracle fees and admin fees are excluded
      * @dev pass the zero address if the asset is the ECOC
-     * @param tokenAddr - ERC20 smart contract address or the zero address for ECOC
+     * @param tokenAddr - ECRC20 smart contract address or the zero address for ECOC
      * @return amount - total locked amount of the asset
      */
     function getLockedAssets(address tokenAddr)
@@ -133,7 +133,7 @@ interface ICC20User {
 
     /**
      * @dev balance of a token accumulated by admin fees and reduced with retrieveFees()
-     * @param tokenAddr - ERC20 smart contract address
+     * @param tokenAddr - ECRC20 smart contract address
      * @return amount - total balance of the token
      */
     function getAdminBalace(address tokenAddr)
@@ -143,7 +143,7 @@ interface ICC20User {
 
     /**
      * @dev total token accumulated by admin fees (includes allready withdrawn)
-     * @param tokenAddr - ERC20 smart contract address
+     * @param tokenAddr - ECRC20 smart contract address
      * @return amount - total fees of the token
      */
     function getTotalAdminFee(address tokenAddr)
@@ -214,7 +214,7 @@ interface ICC20User {
         );
 
     /* Events */
-    event LockERC20Event(
+    event LockECRC20Event(
         address tokenAddr,
         address beneficiarAddr,
         uint256 networkId,

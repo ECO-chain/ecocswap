@@ -62,7 +62,7 @@ interface ICC20Oracle {
     function WithdrawGasCosts() external payable;
 
     /* Events */
-    event UnlockERC20Event(
+    event UnlockECRC20Event(
         address oracle,
         address tokenAddr,
         address beneficiar,
