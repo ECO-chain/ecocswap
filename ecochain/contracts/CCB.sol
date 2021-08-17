@@ -175,23 +175,31 @@ contract CCB {
      * @dev authorizes an oracle for a specific chain
      * @param _oracle - oracle address for all assets of a chain
      * @param _networkId - the network Id according to https://chainlist.org/
+     * Emits {AddOracleEvent}
      */
     function addOracle(address _oracle, uint256 _networkId) external adminOnly {
         Oracle storage oracle = oracles[_oracle];
-        oracle.network[_networkId] = true;
+        if (!oracle.network[_networkId]) {
+            oracle.network[_networkId] = true;
+            emit AddOracleEvent(_oracle, _networkId);
+        }
     }
 
     /**
      * @dev revokes authorization of an oracle for a specific chain
      * @param _oracle - oracle address for all assets of a chain
      * @param _networkId - the network Id according to https://chainlist.org/
+     * Emits {RemoveOracleEvent}
      */
     function removeOracle(address _oracle, uint256 _networkId)
         external
         adminOnly
     {
         Oracle storage oracle = oracles[_oracle];
-        oracle.network[_networkId] = false;
+        if (oracle.network[_networkId]) {
+            oracle.network[_networkId] = false;
+            emit RemoveOracleEvent(_oracle, _networkId);
+        }
     }
 
     /**
