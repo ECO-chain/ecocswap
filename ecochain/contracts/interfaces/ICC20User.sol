@@ -218,11 +218,13 @@ interface ICC20User {
         address tokenAddr,
         address beneficiarAddr,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 requestId
     );
     event LockECOCEvent(
         address beneficiarAddr,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 requestId
     );
 }

@@ -114,14 +114,16 @@ contract CCB {
         address tokenAddr,
         address beneficiar,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 releaseId
     );
     event UnlockECOCEvent(
         address oracle,
         address beneficiar,
         uint256 networkId,
         uint256 amount,
-        uint256 txid
+        uint256 txid,
+        uint256 releaseId
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
     event SetGasCostEvent(address oracle, uint256 cost, uint256 networkId);
@@ -130,12 +132,14 @@ contract CCB {
         address tokenAddr,
         address beneficiarAddr,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 requestId
     );
     event LockECOCEvent(
         address beneficiarAddr,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 requestId
     );
 
     modifier adminOnly() {
@@ -309,7 +313,8 @@ contract CCB {
             _tokenAddr,
             _beneficiar,
             _networkId,
-            _amount
+            _amount,
+            (nextReleaseId - 1)
         );
     }
 
@@ -361,7 +366,8 @@ contract CCB {
             _beneficiar,
             _networkId,
             _amount,
-            _txid
+            _txid,
+            (nextReleaseId - 1)
         );
     }
 
@@ -481,7 +487,7 @@ contract CCB {
         a.totalLocked = a.totalLocked.add(amount);
         a.totalFees = a.totalFees.add(adminFee);
 
-        emit LockECRC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount);
+        emit LockECRC20Event(_tokenAddr, _beneficiarAddr, _networkId, amount, (nextRequestId - 1));
     }
 
     /**
@@ -523,7 +529,7 @@ contract CCB {
         a.pendingAmount = a.pendingAmount.add(lockedAmount);
         a.totalLocked = a.totalLocked.add(lockedAmount);
 
-        emit LockECOCEvent(_beneficiarAddr, _networkId, lockedAmount);
+        emit LockECOCEvent(_beneficiarAddr, _networkId, lockedAmount, (nextRequestId - 1));
     }
 
     /**

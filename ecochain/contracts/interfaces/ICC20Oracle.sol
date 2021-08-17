@@ -67,14 +67,16 @@ interface ICC20Oracle {
         address tokenAddr,
         address beneficiar,
         uint256 networkId,
-        uint256 amount
+        uint256 amount,
+        uint256 releaseId
     );
     event UnlockECOCEvent(
         address oracle,
         address beneficiar,
         uint256 networkId,
         uint256 amount,
-        uint256 txid
+        uint256 txid,
+        uint256 releaseId
     );
     event IssuedEvent(address oracle, uint256 requestId, uint256 txid);
     event SetGasCostEvent(uint256 cost, uint256 networkId, uint256 txid);
