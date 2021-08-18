@@ -429,6 +429,8 @@ contract CCB {
         uint256 amount = oracle.availableAmount;
         oracle.availableAmount = 0;
         msg.sender.transfer(amount);
+
+        emit WithdrawGasCostsEvent(msg.sender, amount);
     }
 
     /**
